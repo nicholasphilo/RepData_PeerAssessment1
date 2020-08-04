@@ -10,13 +10,15 @@ output:
 
 Unzipping and reading in the data:  
 
-```{r message=FALSE, cache=TRUE}
+
+```r
 unzip("activity.zip")
 act_df <- read.csv(  "activity.csv"  ,  header = TRUE , colClasses = c("integer","factor","integer") )
 ```
 
 Now preprocessing the data (using lubridate)  
-```{r message=FALSE, warning=FALSE}
+
+```r
 library(lubridate)
 act_df$date <- parse_date_time(  act_df$date  ,  orders = "%y%m%d"  )
 ```
@@ -25,14 +27,16 @@ act_df$date <- parse_date_time(  act_df$date  ,  orders = "%y%m%d"  )
 ## What is mean total number of steps taken per day?
 Splitting the data by the date then summing the steps per 5 minutes
 
-```{r}
+
+```r
 act_day <- split(act_df$steps, act_df$date)
 total_steps_day <- sapply(act_day, sum)
 ```
 
 histogram of the total steps per day  
 
-```{r}
+
+```r
 hist(total_steps_day, breaks = 7,
      main = NULL,
      xlab = "total steps per day",
@@ -41,23 +45,26 @@ hist(total_steps_day, breaks = 7,
 rug(total_steps_day)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 Finding the mean and median steps per day  
 
-```{r}
+
+```r
 mean_steps_day <- mean(total_steps_day, na.rm = T)
 median_steps_day <- median(total_steps_day, na.rm = T)
-
 ```
 
-*mean number of steps per day:* **`r mean_steps_day`**  
-*median number of steps per day:* **`r median_steps_day`**  
+*mean number of steps per day:* **1.0766189\times 10^{4}**  
+*median number of steps per day:* **10765**  
 
 
 ## What is the average daily activity pattern?
 
 splitting the data set by the minutes, then plotting the average for each interval.  
 
-```{r, fig.width=6}
+
+```r
 act_int <- split(act_df$steps, act_df$interval)
 mean_steps_int <- sapply(act_int, mean, na.rm = TRUE)
 plot(mean_steps_int, type = "l",
@@ -66,35 +73,59 @@ plot(mean_steps_int, type = "l",
 )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
 
 now finding the maximum value and the associated interval:
-```{r}
+
+```r
 maxcon <- mean_steps_int == max(mean_steps_int, na.rm = T)
 names(mean_steps_int[maxcon])
 ```
 
-Therefore `r names(mean_steps_int[maxcon])` or 8:35 is on average the most active interval  
+```
+## [1] "835"
+```
+
+Therefore 835 or 8:35 is on average the most active interval  
 
 
 ## Imputing missing values
 
 first checking for NAs in the date and interval columns:
-```{r}
+
+```r
 sum(is.na(act_df$date))
+```
+
+```
+## [1] 0
+```
+
+```r
 sum(is.na(act_df$interval))
+```
+
+```
+## [1] 0
 ```
 Implying there are none.  
 
 Now checking the steps data column:
-```{r}
+
+```r
 sum(is.na(act_df$steps))
 ```
-So there are 2304 missing values, or as a percentage of the recorded observations: **`r 2304*100/dim(act_df)[1]`%**
+
+```
+## [1] 2304
+```
+So there are 2304 missing values, or as a percentage of the recorded observations: **13.1147541%**
 
 Strategy to fill the NA step values will be to use the mean of the 5 minute interval associated with that observation.
 
-```{r, results='hide'}
 
+```r
 NArpl_df <- act_df # Copy data frame to fill
 mean_steps_df <- data.frame(meanSteps = mean_steps_int,
                             interval = as.integer(names(mean_steps_int))
@@ -119,13 +150,15 @@ for (int5 in mean_steps_df$interval) { # loops over the intervals
 Now data frame `NArpl_df` is an NA filled (by interval mean) version of the original data.  
 
 Now generating the total steps per day as previously:
-```{r}
+
+```r
 NA_rpl_day <- split(NArpl_df$steps, NArpl_df$date)
 total_steps_day_NA <- sapply(NA_rpl_day, sum)
 ```
 
 Now producing the histogram plot with the NA replaced data 
-```{r}
+
+```r
 hist(total_steps_day_NA, breaks = 7,
      main = NULL,
      xlab = "total steps per day",
@@ -134,16 +167,30 @@ hist(total_steps_day_NA, breaks = 7,
 rug(total_steps_day_NA)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
 Investigating the impact that NA replacement has has on the mean and median.
-```{r}
+
+```r
 mean_steps_day_NA <- mean(total_steps_day_NA)
 median_steps_day_NA <- median(total_steps_day_NA)
 mean_steps_day_NA # new mean
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median_steps_day_NA # new median
 ```
 
-Mean change due to NA replacement: **`r mean_steps_day-mean_steps_day_NA`**  
-Median change due to NA replacement: **`r median_steps_day-median_steps_day_NA`**
+```
+## [1] 10766.19
+```
+
+Mean change due to NA replacement: **0**  
+Median change due to NA replacement: **-1.1886792**
 
 
 
@@ -153,15 +200,37 @@ Median change due to NA replacement: **`r median_steps_day-median_steps_day_NA`*
 
 
 Creating factor variable appended to NA replaced data frame using the chron package.
-```{r}
+
+```r
 library(chron)
+```
+
+```
+## NOTE: The default cutoff when expanding a 2-digit year
+## to a 4-digit year will change from 30 to 69 by Aug 2020
+## (as for Date and POSIXct in base R.)
+```
+
+```
+## 
+## Attaching package: 'chron'
+```
+
+```
+## The following objects are masked from 'package:lubridate':
+## 
+##     days, hours, minutes, seconds, years
+```
+
+```r
 NArpl_df$weekday <- as.factor(ifelse(is.weekend(NArpl_df$date), "Weekend","Week Day"))
 ```
 
 
 
 Subsetting the data by week vs weekend: then finding the 5 minute averages
-```{r}
+
+```r
 WKDY_df <- subset(NArpl_df, weekday == "Week Day")  # Separating the data by weekday/weekend
 WKND_df <- subset(NArpl_df, weekday == "Weekend")
 
@@ -173,7 +242,8 @@ WKND_int_mean <- sapply(  WKND_int , mean  )
 ```
 
 Plotting the 5 minute intervals for the weekend and weekday data
-```{r, fig.height=7}
+
+```r
 par(mfrow = c(2,1))
 plot(WKDY_int_mean, type = "l",
      xlab = "5 minute interval",ylab = "Mean steps",
@@ -183,6 +253,7 @@ plot(WKND_int_mean,type = "l", col = 2,
      xlab = "5 minute interval",ylab = "Mean steps",
      main = "Mean Steps Taken Throughout the Weekend"
      )
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
