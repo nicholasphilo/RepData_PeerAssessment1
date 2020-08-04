@@ -147,9 +147,11 @@ for (int5 in mean_steps_df$interval) { # loops over the intervals
 }
 ```
 
-Now data frame `NArpl_df` is an NA filled (by interval mean) version of the original data.  
+The data frame `NArpl_df` is now an NA filled (by interval mean) version of the original data.  
+  
+  
 
-Now generating the total steps per day as previously:
+Using this data frame, the total number of steps taken daily is computed (as previous)
 
 ```r
 NA_rpl_day <- split(NArpl_df$steps, NArpl_df$date)
@@ -169,7 +171,7 @@ rug(total_steps_day_NA)
 
 ![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
-Investigating the impact that NA replacement has has on the mean and median.
+Investigating the impact that NA replacement has had on the mean and median.
 
 ```r
 mean_steps_day_NA <- mean(total_steps_day_NA)
@@ -228,7 +230,7 @@ NArpl_df$weekday <- as.factor(ifelse(is.weekend(NArpl_df$date), "Weekend","Week 
 
 
 
-Subsetting the data by week vs weekend: then finding the 5 minute averages
+Subsetting the data by week vs weekend, then finding the 5 minute averages
 
 ```r
 WKDY_df <- subset(NArpl_df, weekday == "Week Day")  # Separating the data by weekday/weekend
